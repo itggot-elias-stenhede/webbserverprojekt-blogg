@@ -1,6 +1,11 @@
-a href="/login" login
-a href="/register" register
+h1 Homepage
 
-p = @username
+a href="/register" register new account
+p 
+a href="/login" login to existing account
 
-p = session[:username]
+- session[:blogposts].each do |blogpost|
+    h5 = blogpost[1]
+    p = blogpost[2]
+    p = blogpost[0]
+    p = blogpost[4]

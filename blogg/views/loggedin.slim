@@ -1,4 +1,7 @@
-p loggedin
+h3 welcome back!
 
+form action="/makepost" method="POST"
+    input type="text" name="header" placeholder="Enter header"
+    input type="text" name="text" placeholder="Enter text"
 
-p = session[:username]
+    input type="submit" value="Post"
