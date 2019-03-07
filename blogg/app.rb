@@ -15,20 +15,24 @@ end
 post ("/login") do
     db = SQLite3::Database.new("db/blog.db")
 
-    hashed_pass = db.execute("SELECT Password FROM users WHERE Username = '#{params["Username"]}'")
-    
+    if params["Username"].length > 0
+        hashed_pass = db.execute("SELECT Password FROM users WHERE Username = '#{params["Username"]}'")
+    else
+        redirect("/login")
+    end
+
     if hashed_pass.length == 0
         redirect("/login")
     end
 
-    hashed_pass = hashed_pass[0][0]
+    hashed_pass = hashed_pass.first.first
 
     if BCrypt::Password.new(hashed_pass) == params["Password"]
         session[:loggedin] = true
         session[:username] = params["Username"]
         redirect("/loggedin")
     else
-        redirect("/failed")
+        redirect("/loginfailed")
     end
 end
 
@@ -51,8 +55,12 @@ get ("/loggedin") do
     end
 end
 
-get ("/failed") do
-    slim(:failed)
+get ("/loginfailed") do
+    slim(:loginfailed)
+end
+
+get ("/updatefailed") do
+    slim(:updatefailed)
 end
 
 get("/permission") do
@@ -61,13 +69,51 @@ end
 
 post("/makepost") do
     db = SQLite3::Database.new("db/blog.db")
-    db.execute("INSERT INTO posts (Username, Header, Text, Time) VALUES (?, ?, ?, ?)", session[:username], params["header"], params["text"], Time.now.to_s[0..9])
+    db.execute("INSERT INTO posts (Username, Header, Text, Time) VALUES (?, ?, ?, ?)", session[:username], params["header"], params["text"], Time.now.to_s[0..18])
     redirect("/home")
 end
 
 get("/home") do
     db = SQLite3::Database.new("db/blog.db")
     session[:blogposts] = db.execute("SELECT * FROM posts")
-
     slim(:home)
+end
+
+get("/profile") do
+    if session[:loggedin]
+        db = SQLite3::Database.new("db/blog.db")
+        slim(:profile)
+    else
+        redirect("/permission")
+    end
+end
+
+post("/profile") do
+    if session[:loggedin]
+        db = SQLite3::Database.new("db/blog.db")
+        if params["username"].length > 0
+            hashed_pass = db.execute("SELECT Password FROM users WHERE Username = '#{session[:username]}'").first.first
+        else
+            redirect("/profile")
+        end
+
+        if params["newpassword1"] == params["newpassword2"] && BCrypt::Password.new(hashed_pass) == params["currentpassword"]    #???
+            new_hashed_pass = BCrypt::Password.create("#{params["newpassword1"]}")
+            db.execute("UPDATE users SET Username = ?, Password = ? WHERE Username = '#{session[:username]}'", params["username"], new_hashed_pass)  #???
+            session.destroy
+            redirect("/home")
+        else
+            redirect("/profile")                    #fix
+        end
+    else
+        redirect("/permission")
+    end
+end
+
+get("/makepost") do
+    if session[:loggedin]
+        slim(:makepost)
+    else
+        redirect("/permission")
+    end
 end

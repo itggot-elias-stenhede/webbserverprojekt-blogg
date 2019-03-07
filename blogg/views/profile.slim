@@ -1,0 +1,6 @@
+form action="/profile" method="POST"
+    input type="text" name="username" value="#{session[:username]}"
+    input type="text" name="currentpassword" placeholder="Enter current password"
+    input type="text" name="newpassword1" placeholder="Enter new password"
+    input type="text" name="newpassword2" placeholder="Re-enter new password"
+    input type="submit" value="Update profile"
