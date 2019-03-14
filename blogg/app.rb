@@ -1,8 +1,7 @@
-require 'SQLite3'
 require 'sinatra'
 require 'slim'
-require 'bcrypt'
 enable :sessions
+require_relative './controller.rb'
 
 get ("/") do
     redirect("/home")
@@ -68,8 +67,7 @@ get("/permission") do
 end
 
 post("/makepost") do
-    db = SQLite3::Database.new("db/blog.db")
-    db.execute("INSERT INTO posts (Username, Header, Text, Time) VALUES (?, ?, ?, ?)", session[:username], params["header"], params["text"], Time.now.to_s[0..18])
+    makepost(session[:username], params["header"], params["text"])
     redirect("/home")
 end
 
